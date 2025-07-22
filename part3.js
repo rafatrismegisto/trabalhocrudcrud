@@ -1,5 +1,5 @@
 // ------------ CONFIGURAÇÃO ------------
-// Adicione o endpoint correto (exemplo: 'clients')
+// Adicione o endpoint correto  
 const API_BASE = 'https://crudcrud.com/api/177e6f3725cd436fa7aa87ee224288eb/clients';
 
 // Captura elementos do DOM
