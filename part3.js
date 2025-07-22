@@ -1,44 +1,47 @@
 // ------------ CONFIGURAÇÃO ------------
-// Adicione o endpoint correto  
+// Substitua o endpoint abaixo pelo seu token do CrudCrud
 const API_BASE = 'https://crudcrud.com/api/177e6f3725cd436fa7aa87ee224288eb/clients';
 
-// Captura elementos do DOM
+// ------------ CAPTURA DE ELEMENTOS ------------ //
 const form = document.getElementById('client-form');
 const nameInput = document.getElementById('name');
 const emailInput = document.getElementById('email');
 const listEl = document.getElementById('client-list');
 
-// ------------ DEPURAÇÃO ------------
-function debugLog(msg, type = 'info') {
+// ------------ DEPURAÇÃO (console.log estilizado) ------------ //
+function debugLog(message, type = 'info') {
   const styles = {
     info: 'color: navy; font-weight: bold',
     error: 'color: darkred; font-weight: bold',
     warn: 'color: orange; font-weight: bold'
   };
-  console.log(`%c${msg}`, styles[type] || styles.info);
+  console.log(`%c${message}`, styles[type] || styles.info);
 }
 
-// ------------ FUNÇÕES ------------
+// ------------ CARREGAR CLIENTES AO INICIAR ------------ //
 window.addEventListener('DOMContentLoaded', fetchClients);
 
 async function fetchClients() {
-  debugLog('Chamando fetchClients()', 'info');
+  debugLog('Buscando clientes...', 'info');
   try {
-    const res = await fetch(API_BASE);
-    debugLog(`GET ${API_BASE} → ${res.status}`, 'info');
+    const response = await fetch(API_BASE);
+    debugLog(`GET ${API_BASE} → ${response.status}`, 'info');
 
-    if (!res.ok) throw new Error('Falha no GET');
-    const data = await res.json();
-    debugLog('Dados recebidos do servidor:', 'info');
-    console.table(data);
+    if (!response.ok) throw new Error('Erro ao buscar clientes');
+
+    const clients = await response.json();
+    debugLog('Clientes carregados:', 'info');
+    console.table(clients);
 
     listEl.innerHTML = '';
-    data.forEach(renderClient);
-  } catch (err) {
-    debugLog(err.message, 'error');
+    clients.forEach(renderClient);
+  } catch (error) {
+    debugLog(error.message, 'error');
+    listEl.innerHTML = '<li>Erro ao carregar clientes.</li>';
   }
 }
 
+// ------------ EXIBIR CLIENTE NA LISTA ------------ //
 function renderClient(client) {
   const li = document.createElement('li');
   li.id = client._id;
@@ -54,43 +57,50 @@ function renderClient(client) {
   listEl.appendChild(li);
 }
 
-form.addEventListener('submit', async e => {
-  e.preventDefault();
+// ------------ ADICIONAR CLIENTE ------------ //
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
 
   const newClient = {
     name: nameInput.value.trim(),
     email: emailInput.value.trim()
   };
+
   if (!newClient.name || !newClient.email) {
-    debugLog('Nome ou e-mail vazio. Abortando POST.', 'warn');
+    debugLog('Nome ou e-mail vazio. Não foi possível adicionar.', 'warn');
     return;
   }
 
   try {
-    const res = await fetch(API_BASE, {
+    const response = await fetch(API_BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newClient)
     });
-    debugLog(`POST → ${res.status}`, 'info');
 
-    if (!res.ok) throw new Error('Falha no POST');
+    debugLog(`POST → ${response.status}`, 'info');
+
+    if (!response.ok) throw new Error('Erro ao adicionar cliente');
+
     nameInput.value = '';
     emailInput.value = '';
     fetchClients();
-  } catch (err) {
-    debugLog(err.message, 'error');
+  } catch (error) {
+    debugLog(error.message, 'error');
   }
 });
 
+// ------------ EXCLUIR CLIENTE ------------ //
 async function deleteClient(id) {
-  try {
-    const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
-    debugLog(`DELETE → ${res.status}`, 'info');
+  debugLog(`Excluindo cliente ID: ${id}`, 'warn');
 
-    if (!res.ok) throw new Error('Falha no DELETE');
+  try {
+    const response = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+    debugLog(`DELETE → ${response.status}`, 'info');
+
+    if (!response.ok) throw new Error('Erro ao excluir cliente');
     document.getElementById(id)?.remove();
-  } catch (err) {
-    debugLog(err.message, 'error');
+  } catch (error) {
+    debugLog(error.message, 'error');
   }
 }
